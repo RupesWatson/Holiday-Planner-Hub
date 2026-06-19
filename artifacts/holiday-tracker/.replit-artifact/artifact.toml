@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "FIG Holiday Tracker"
+version = "1.0.0"
+id = "artifacts/holiday-tracker"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23225
+
+[services.development]
+run = "pnpm --filter @workspace/holiday-tracker run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/holiday-tracker", "run", "build" ]
+publicDir = "artifacts/holiday-tracker/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23225"
+BASE_PATH = "/"

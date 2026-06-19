@@ -1,6 +1,6 @@
-# [Project name]
+# FIG Holiday Tracker
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A shared time-off tracker for the combined FIG (Financial Institutions Group) banking team — book holidays from the calendar or roster, import an existing spreadsheet, and flag days where too many people are away.
 
 ## Run & Operate
 
@@ -22,15 +22,25 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- API contract (source of truth): `lib/api-spec/openapi.yaml` — run codegen after edits.
+- DB schema: `lib/db/src/schema/{people,holidays,settings}.ts`.
+- API routes: `artifacts/api-server/src/routes/{people,holidays,insights,settings}.ts`; date helpers in `artifacts/api-server/src/lib/dates.ts`.
+- Frontend: `artifacts/holiday-tracker/src/` — pages in `pages/`, dialogs in `components/{holidays,people}/`, theme in `src/index.css`.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Dates stored as `date(mode: "string")` in `YYYY-MM-DD` to avoid timezone shifts; never parse holiday dates through UTC `Date`.
+- `holidays.person_id` has a FK to `people.id` with `ON DELETE CASCADE` — removing a person removes their bookings (no orphaned coverage counts).
+- Server validates holiday writes (create/update/import): rejects malformed dates and `startDate > endDate`, and verifies `personId` exists.
+- Coverage conflict flagging: a day is `overThreshold` when `awayCount > settings.maxAway`.
+- Spreadsheet import is parsed client-side (xlsx) into rows, then matched server-side against person name OR initials (case-insensitive).
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Calendar dashboard: summary cards (away today/this week, upcoming, conflict days), month grid with color-coded per-person pills and conflict highlighting. Click a day to book.
+- Team roster: add/edit/remove leads and bankers; click a person (or the calendar+ button) to book time off for them directly.
+- Settings: configure team name and the max-people-away conflict threshold.
+- Import: upload an Excel/CSV of existing holidays; unmatched names are reported back.
 
 ## User preferences
 
@@ -38,7 +48,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After changing any `lib/*` package (e.g. DB schema), run `pnpm run typecheck:libs` before typechecking artifacts, or you'll see stale "no exported member" errors.
+- The font `@import` in `src/index.css` must come before the Tailwind `@import`s (CSS requires `@import` first).
+- This app has no auth — it's an internal team tool. Add access control before exposing it publicly.
 
 ## Pointers
 

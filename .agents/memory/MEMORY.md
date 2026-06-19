@@ -1,0 +1,3 @@
+- [Holiday tracker data integrity](holiday-tracker-data-integrity.md) — FK cascade + server date-range validation are required; orphaned rows break coverage counts.
+- [Tailwind CSS @import order](tailwind-css-import-order.md) — font @import must precede Tailwind @imports or Vite build fails.
+- [RHF dialog reset](rhf-dialog-reset.md) — defaultValues aren't reactive; reset() on open/id change to avoid stale form data.

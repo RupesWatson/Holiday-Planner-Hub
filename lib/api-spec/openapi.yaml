@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: people
+    description: Team member operations
+  - name: holidays
+    description: Holiday / time-off operations
+  - name: insights
+    description: Coverage and dashboard insights
+  - name: settings
+    description: Team settings
 paths:
   /healthz:
     get:
@@ -24,6 +32,246 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /people:
+    get:
+      operationId: listPeople
+      tags: [people]
+      summary: List all team members
+      responses:
+        "200":
+          description: List of people
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Person"
+    post:
+      operationId: createPerson
+      tags: [people]
+      summary: Add a team member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+  /people/{id}:
+    patch:
+      operationId: updatePerson
+      tags: [people]
+      summary: Update a team member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+    delete:
+      operationId: deletePerson
+      tags: [people]
+      summary: Remove a team member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+  /holidays:
+    get:
+      operationId: listHolidays
+      tags: [holidays]
+      summary: List holidays, optionally filtered by date range or person
+      parameters:
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Inclusive start date (YYYY-MM-DD)
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Inclusive end date (YYYY-MM-DD)
+        - name: personId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of holidays
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Holiday"
+    post:
+      operationId: createHoliday
+      tags: [holidays]
+      summary: Book time off
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HolidayInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holiday"
+  /holidays/{id}:
+    patch:
+      operationId: updateHoliday
+      tags: [holidays]
+      summary: Update a booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HolidayUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Holiday"
+    delete:
+      operationId: deleteHoliday
+      tags: [holidays]
+      summary: Delete a booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+  /holidays/import:
+    post:
+      operationId: importHolidays
+      tags: [holidays]
+      summary: Bulk import holidays from a parsed spreadsheet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HolidayImportInput"
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResult"
+  /coverage:
+    get:
+      operationId: getCoverage
+      tags: [insights]
+      summary: Day-by-day count of people away, flagging conflicts
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Inclusive start date (YYYY-MM-DD)
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Inclusive end date (YYYY-MM-DD)
+      responses:
+        "200":
+          description: Coverage per day
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoverageDay"
+  /summary:
+    get:
+      operationId: getSummary
+      tags: [insights]
+      summary: Dashboard summary of team time off
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get team settings
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+    patch:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update team settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +281,195 @@ components:
           type: string
       required:
         - status
-
+    Person:
+      type: object
+      required: [id, name, initials, role, color]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        initials:
+          type: string
+        role:
+          type: string
+          enum: [lead, banker]
+        color:
+          type: string
+          description: Hex color used to identify the person on the calendar
+    PersonInput:
+      type: object
+      required: [name, initials, role]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        initials:
+          type: string
+          minLength: 1
+        role:
+          type: string
+          enum: [lead, banker]
+        color:
+          type: string
+    PersonUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        initials:
+          type: string
+          minLength: 1
+        role:
+          type: string
+          enum: [lead, banker]
+        color:
+          type: string
+    Holiday:
+      type: object
+      required: [id, personId, startDate, endDate, type]
+      properties:
+        id:
+          type: integer
+        personId:
+          type: integer
+        startDate:
+          type: string
+          description: Inclusive start date (YYYY-MM-DD)
+        endDate:
+          type: string
+          description: Inclusive end date (YYYY-MM-DD)
+        type:
+          type: string
+          enum: [annual, sick, public, other]
+        notes:
+          type: ["string", "null"]
+    HolidayInput:
+      type: object
+      required: [personId, startDate, endDate]
+      properties:
+        personId:
+          type: integer
+        startDate:
+          type: string
+        endDate:
+          type: string
+        type:
+          type: string
+          enum: [annual, sick, public, other]
+        notes:
+          type: string
+    HolidayUpdate:
+      type: object
+      properties:
+        personId:
+          type: integer
+        startDate:
+          type: string
+        endDate:
+          type: string
+        type:
+          type: string
+          enum: [annual, sick, public, other]
+        notes:
+          type: ["string", "null"]
+    HolidayImportRow:
+      type: object
+      required: [name, startDate, endDate]
+      properties:
+        name:
+          type: string
+          description: Person name or initials to match against the team
+        startDate:
+          type: string
+        endDate:
+          type: string
+        type:
+          type: string
+          enum: [annual, sick, public, other]
+        notes:
+          type: string
+    HolidayImportInput:
+      type: object
+      required: [rows]
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/HolidayImportRow"
+    ImportResult:
+      type: object
+      required: [imported, skipped, unmatched]
+      properties:
+        imported:
+          type: integer
+        skipped:
+          type: integer
+        unmatched:
+          type: array
+          items:
+            type: string
+    CoverageDay:
+      type: object
+      required: [date, awayCount, overThreshold, personIds]
+      properties:
+        date:
+          type: string
+        awayCount:
+          type: integer
+        overThreshold:
+          type: boolean
+        personIds:
+          type: array
+          items:
+            type: integer
+    PersonAwayStat:
+      type: object
+      required: [personId, name, initials, daysOff]
+      properties:
+        personId:
+          type: integer
+        name:
+          type: string
+        initials:
+          type: string
+        daysOff:
+          type: integer
+    Summary:
+      type: object
+      required: [totalPeople, awayToday, awayThisWeek, upcomingBookings, conflictDays, perPerson]
+      properties:
+        totalPeople:
+          type: integer
+        awayToday:
+          type: integer
+        awayThisWeek:
+          type: integer
+        upcomingBookings:
+          type: integer
+        conflictDays:
+          type: integer
+          description: Number of upcoming days (next 90) over the away threshold
+        perPerson:
+          type: array
+          items:
+            $ref: "#/components/schemas/PersonAwayStat"
+    Settings:
+      type: object
+      required: [id, maxAway, teamName]
+      properties:
+        id:
+          type: integer
+        maxAway:
+          type: integer
+          description: Maximum people allowed away before a conflict is flagged
+        teamName:
+          type: string
+    SettingsUpdate:
+      type: object
+      properties:
+        maxAway:
+          type: integer
+        teamName:
+          type: string
