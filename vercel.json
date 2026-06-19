@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm run vercel-build",
+  "installCommand": "pnpm install --frozen-lockfile=false",
+  "outputDirectory": "artifacts/holiday-tracker/dist/public",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" }
+  ]
+}

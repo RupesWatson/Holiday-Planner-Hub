@@ -164,6 +164,12 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
 
+  api:
+    dependencies:
+      '@workspace/api-server':
+        specifier: workspace:*
+        version: link:../artifacts/api-server
+
   artifacts/api-server:
     dependencies:
       '@workspace/api-zod':
